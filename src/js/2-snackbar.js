@@ -1,31 +1,43 @@
 import iziToast from 'izitoast';
 import 'izitoast/dist/css/iziToast.min.css';
 
-const elements = {
-  delay: document.querySelector(`input[name="delay"]`),
-  fulfilled: document.querySelector(`input[value="fulfilled"]`),
-  rejected: document.querySelector(`input[value="rejected"]`),
-  sbmtBtn: document.querySelector(`button[type="submit"]`),
+const formEl = document.querySelector('.form');
+const refs = {
+  delay: formEl.elements.delay,
+  state: formEl.elements.state,
 };
 
-const showToast = message => iziToast.show({ message });
-
-elements.sbmtBtn.addEventListener(`click`, event => {
+formEl.addEventListener('submit', event => {
   event.preventDefault();
+  function makePromise(delay, state) {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        if (state === 'fulfilled') {
+          resolve(delay);
+        } else {
+          reject(delay);
+        }
+      }, delay);
+    });
+  }
 
-  const delay = Number(elements.delay.value);
-  const fulfilledChecked = elements.fulfilled.checked;
-  const rejectedChecked = elements.rejected.checked;
-  new Promise((resolve, reject) => {
-    setTimeout(() => {
-      if (fulfilledChecked) {
-        resolve(`✅ Fulfilled promise in ${delay}ms`);
-      } else if (rejectedChecked) {
-        reject(`❌ Rejected promise in ${delay}ms`);
-      }
-    }, delay);
-  })
+  const promise = makePromise(refs.delay.value, refs.state.value);
 
-    .then(showToast)
-    .catch(showToast);
+  promise
+    .then(delay => {
+      iziToast.success({
+        color: 'green',
+        position: 'topRight',
+        message: `✅ Fulfilled promise in ${delay}ms`,
+      });
+    })
+    .catch(delay => {
+      iziToast.error({
+        color: 'red',
+        position: 'topRight',
+        message: `❌ Rejected promise in ${delay}ms`,
+      });
+    });
+
+  formEl.reset();
 });
